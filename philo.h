@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/time.h>
-
+#include <unistd.h>
 
 typedef struct s_fork
 {
@@ -20,8 +20,9 @@ typedef struct s_game
 	bool			num_of_full_philos;
 	bool			is_someone_died;
 	bool end_simulation; // a philo dead or everything is full
-	t_fork *forks;       // array of mutex forks
-	t_philo *philos;     // array of philos
+	pthread_t		monitor_thread;
+	t_fork *forks;   // array of mutex forks
+	t_philo *philos; // array of philos
 }					t_game;
 
 typedef struct s_philo
@@ -35,4 +36,3 @@ typedef struct s_philo
 	pthread_t thread_id; // a philo is a thread
 	t_game			*game;
 }					t_philo;
-
