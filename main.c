@@ -7,7 +7,7 @@ void	*philo_think(t_philo *philo)
 
 	gettimeofday(&current_time, NULL);
 	printf("%ld %ld is thinking\n", current_time.tv_usec, philo->philo_id);
-	if (!usleep(philo->game->time))
+	if (!usleep(philo->game->time_))
 		return (-1);
 }
 void	*philo_sleep(t_philo *philo)
@@ -57,55 +57,46 @@ void	*philo_routine(t_philo *philo)
 }
 void	start_philo(t_game *game)
 {
-	pthread_t		threads[game->number_of_philo];
-	pthread_mutex_t	mutext_FUEL;
+	pthread_mutex_t	mutext;
 	int				num;
 	int				i;
-	t_philo			philos[game->number_of_philo];
-	int				forks[game->number_of_philo];
 
-	// double linked list ?
 	// create an array of philo;
 	i = 0;
-	while (i < num)
-	{
-		philos[i].count_of_eat_times = 0;
-		philos[i].last_meal_time = 0;
-		if (i == 0)
-		{
-			philos[i].left_fork = forks[num];
-		}
-		else
-			philos[i].left_fork = forks[i - 1];
-		philos[i].right_fork = forks[i];
-	}
+	num = game->number_of_philo;
 	// create threads for each philo,  thread, attributes, function_2_call,
 	// function_args
 	while (i < num)
 	{
-		pthread_create(&threads[i], NULL, philo_routine, &philos[i]);
+		pthread_create(&game->philos[i].thread_id, NULL, philo_routine,
+			&game->philos[i]);
 		i++;
 	}
 	i = 0;
 	while (i < num)
 	{
-		pthread_join(threads[i], NULL);
+		pthread_join(game->philos[i].thread_id, NULL);
 		i++;
 	}
-	// create an array of fork; order matters :
 }
 
-t_fork	*init_forks(t_fork *forks, long num_of_forks)
+t_fork	*init_forks(t_game *game)
 {
-	int	i;
+	int		i;
+	int		count;
+	t_fork	*forks;
 
 	i = 0;
-	while (i < num_of_forks)
+	count = game->number_of_philo;
+	// TODO safe_malloc
+	forks = malloc(sizeof(t_fork) * count);
+	while (i < count)
 	{
 		forks[i].fork_id = i;
 		pthread_mutex_init(&forks[i].fork, NULL);
 		i++;
 	}
+	game->forks = forks;
 }
 /*
 typedef struct s_philo
@@ -120,27 +111,33 @@ typedef struct s_philo
 	t_game	*game;
 }			t_philo;
 */
-t_philo	*init_philos(t_game *game, t_philo *philos)
+t_philo	*init_philos(t_game *game)
 {
 	int			i;
-	pthread_t	philo_threads[game->number_of_philo];
+	pthread_t	*philo_threads;
+	int			count;
+	t_philo		*philos;
 
 	i = 0;
-	while (i < game->number_of_philo)
+	count = game->number_of_philo;
+	philos = malloc(sizeof(t_philo) * count);
+	philo_threads = malloc(sizeof(pthread_t) * count);
+	while (i < count)
 	{
 		philos[i].philo_id = i + 1;
+		philos[i].left_fork = &game->forks[i];
 		if (i == 0)
-			philos[i].left_fork = &game->forks[game->number_of_philo];
+			philos[i].right_fork = &game->forks[count - 1];
 		else
-			philos[i].left_fork = &game->forks[i];
-		philos[i].right_fork = &game->forks[i];
+			philos[i].right_fork = &game->forks[i - 1];
 		philos[i].last_meal_time = 0;
 		philos[i].count_of_eat_times = 0;
 		philos[i].full = false;
 		pthread_create(&philo_threads[i], NULL, philo_routine, &philos[i]);
-		philos[i].thread_id = i;
+		philos[i].thread_id = philo_threads[i];
 		i++;
 	}
+	game->philos = philos;
 }
 
 // as philo (aka thread) does not communicate with each other
@@ -180,9 +177,9 @@ int	main(int argc, char **argv)
 {
 	t_game			game;
 	struct timeval	current_time;
-	t_philo			philos[game.number_of_philo];
-	t_fork			forks[game.number_of_philo];
 
+	// t_philo			philos[game.number_of_philo];
+	// t_fork			forks[game.number_of_philo];
 	if (argc < 5)
 		// not enough argument
 		return (1);
@@ -203,11 +200,14 @@ int	main(int argc, char **argv)
 	printf("seconds: %ld \n microsecond :%ld ", current_time.tv_sec,
 		current_time.tv_usec);
 	// init forks
-	game.forks = init_forks(forks, game.number_of_philo);
+	game.forks = init_forks(&game);
 	// init philos?
-	game.philos = init_philos(philos, game.number_of_philo);
+	game.philos = init_philos(&game);
+	// create a monitor thread
 	pthread_create(&game.monitor_thread, NULL, monitor_die_or_full, &game);
 	while (!game.end_simulation)
+		// create thread in each philo in the game
 		start_philo(&game);
 	pthread_join(game.monitor_thread, NULL);
+	// clean_game, destroy things, free memories
 }
