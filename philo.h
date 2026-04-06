@@ -1,13 +1,26 @@
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 typedef struct s_fork
 {
-	int				fork_id;
+	int fork_id; // debug purpose
 	pthread_mutex_t	fork;
 }					t_fork;
+
+typedef struct s_philo
+{
+	long			philo_id;
+	t_fork			*left_fork;
+	t_fork			*right_fork;
+	struct s_game	*game;
+	long last_meal_time; // time passed from last meal
+	long			count_of_eat_times;
+	bool			full;
+	pthread_t thread_id; // a philo is a thread
+}					t_philo;
 
 typedef struct s_game
 {
@@ -24,15 +37,3 @@ typedef struct s_game
 	t_fork *forks;   // array of mutex forks
 	t_philo *philos; // array of philos
 }					t_game;
-
-typedef struct s_philo
-{
-	int				philo_id;
-	t_fork			*left_fork;
-	t_fork			*right_fork;
-	long last_meal_time; // time passed from last meal
-	long			count_of_eat_times;
-	bool			full;
-	pthread_t thread_id; // a philo is a thread
-	t_game			*game;
-}					t_philo;
