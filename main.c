@@ -68,6 +68,7 @@ int	init_philos(t_game *game)
 		i++;
 	}
 	game->philos = philos;
+	philos->game = game;
 	return (0);
 }
 void	philo_think(t_philo *philo)
@@ -104,9 +105,16 @@ void	philo_eat(t_philo *philo)
 	gettimeofday(&current_time, NULL);
 	printf("%ld %ld is eating\n", current_time.tv_usec, philo->philo_id);
 	philo->count_of_eat_times++;
-	if (!usleep(philo->game->time_to_eat))
-		return ;
+	printf(" %ld has eaten %ld times \n", philo->philo_id,
+		philo->count_of_eat_times);
+	usleep(philo->game->time_to_eat); // need to check usleep return value
+	printf(" %ld time to eat is %ld \n", philo->philo_id,
+		philo->game->time_to_eat);
+	gettimeofday(&current_time, NULL);
+	printf("%ld %ld has finished eating\n", current_time.tv_usec,
+		philo->philo_id);
 	// philo put down fork, unlock 2 forks
+	printf("%ld try to put down fork \n. ", philo->philo_id);
 	pthread_mutex_unlock(&philo->first_fork->fork);
 	pthread_mutex_unlock(&philo->second_fork->fork);
 }
@@ -205,7 +213,7 @@ int	main(int argc, char **argv)
 	game.num_of_full_philos = 0;
 	game.end_simulation = game.is_someone_died
 		|| game.num_of_full_philos == game.number_of_philo;
-	printf("seconds: %ld \n microsecond :%ld ", current_time.tv_sec,
+	printf("seconds: %ld , microsecond :%ld \n", current_time.tv_sec,
 		current_time.tv_usec);
 	// init forks
 	init_forks(&game);
