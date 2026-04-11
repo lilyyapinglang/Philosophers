@@ -36,4 +36,6 @@ typedef struct s_game
 	pthread_t		monitor_thread;
 	t_fork *forks;   // array of mutex forks
 	t_philo *philos; // array of philos
+	pthread_mutex_t	state_mutex;
+	pthread_mutex_t	print_mutex;
 }					t_game;

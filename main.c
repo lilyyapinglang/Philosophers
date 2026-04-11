@@ -20,6 +20,16 @@ long long	get_start_time(t_philo *philo)
 {
 	return (philo->game->start_time_of_simulation);
 }
+
+bool	is_simulation_over(t_game *game)
+{
+	bool	result;
+
+	pthread_mutex_lock(&game->state_mutex);
+	result = game->end_simulation;
+	pthread_mutex_unlock(&game->state_mutex);
+	return (result);
+}
 int	init_forks(t_game *game)
 {
 	int		i;
@@ -39,6 +49,7 @@ int	init_forks(t_game *game)
 	game->forks = forks;
 	return (0);
 }
+
 /*
 typedef struct s_philo
 {
@@ -66,7 +77,7 @@ int	init_philos(t_game *game)
 	while (i < count)
 	{
 		philos[i].philo_id = i + 1;
-		philos[i].last_meal_time = 0;
+		philos[i].last_meal_time = game->start_time_of_simulation;
 		philos[i].count_of_eat_times = 0;
 		philos[i].full = false;
 		philos[i].game = game;
@@ -91,43 +102,57 @@ int	init_philos(t_game *game)
 	// philos->game = game;
 	return (0);
 }
+
 void	philo_think(t_philo *philo)
 {
+	if (is_simulation_over(philo->game))
+		return ;
 	printf("%lld %ld is thinking\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id);
 }
 void	philo_sleep(t_philo *philo)
 {
+	if (is_simulation_over(philo->game))
+		return ;
 	printf("%lld %ld is sleeping\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id);
-	if (!usleep(philo->game->time_to_sleep))
-		return ;
+	usleep(philo->game->time_to_sleep * 1000);
 }
 
 void	philo_eat(t_philo *philo)
 {
 	// philo take fork, lock 2 forks
 	//  if philo is even, pick right first
+	if (is_simulation_over(philo->game))
+		return ;
 	pthread_mutex_lock(&philo->first_fork->fork);
+	if (!is_simulation_over(philo->game))
+	{
+		pthread_mutex_unlock(&philo->first_fork->fork);
+		return ;
+	}
 	printf("%lld %ld has take a fork %d\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id, philo->first_fork->fork_id);
 	pthread_mutex_lock(&philo->second_fork->fork);
+	if (!is_simulation_over(philo->game))
+	{
+		pthread_mutex_unlock(&philo->first_fork->fork);
+		pthread_mutex_unlock(&philo->second_fork->fork);
+		return ;
+	}
 	printf("%lld %ld has take a fork %d\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id, philo->second_fork->fork_id);
 	// philo eat
+	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->last_meal_time = get_time_in_milliseconds();
+	pthread_mutex_unlock(&philo->game->state_mutex);
 	printf("%lld %ld is eating\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id);
+	usleep(philo->game->time_to_eat * 1000);
+	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->count_of_eat_times++;
-	printf("%ld has eaten %ld times\n", philo->philo_id,
-		philo->count_of_eat_times);
-	usleep(philo->game->time_to_eat); // need to check usleep return value
-	printf("%ld time to eat is %ld\n", philo->philo_id,
-		philo->game->time_to_eat);
-	printf("%lld %ld has finished eating\n", get_time_in_milliseconds()
-		- get_start_time(philo), philo->philo_id);
-	// philo put down fork, unlock 2 forks
-	printf("%ld try to put down fork\n", philo->philo_id);
+	philo->full = (philo->count_of_eat_times >= philo->game->num_philo_must_eat) ? true : false;
+	pthread_mutex_unlock(&philo->game->state_mutex);
 	pthread_mutex_unlock(&philo->first_fork->fork);
 	pthread_mutex_unlock(&philo->second_fork->fork);
 }
@@ -138,9 +163,9 @@ void	*philo_routine(void *philo)
 
 	// is full ?
 	philo_1 = philo;
-	if (philo_1->full)
-		return (NULL);
-	while (!philo_1->game->end_simulation)
+	// if (philo_1->full)
+	// 	return (NULL);
+	while (!is_simulation_over(philo_1->game))
 	{
 		// eat
 		philo_eat(philo_1);
@@ -171,33 +196,58 @@ void	start_philo(t_game *game)
 }
 // as philo (aka thread) does not communicate with each other
 // and they(each thread) don't know if another thread is about to die
+// later need to check ;
+// game.is_someone_died
+//|| (game.num_of_full_philos == game.number_of_philo);
 void	*monitor_die_or_full(void *game)
 {
-	int		i;
-	int		count;
-	t_game	*game_1;
+	int			i;
+	int			count;
+	t_game		*game_1;
+	int			full_count;
+	long long	last;
+	bool		is_full;
 
+	full_count = 0;
 	game_1 = game;
-	count = game_1->num_of_full_philos;
+	count = game_1->number_of_philo;
 	i = 0;
 	// check current time
 	// check each philo last eat time
 	while (!game_1->end_simulation)
 	{
+		i = 0;
+		full_count = 0;
 		while (i < count)
 		{
-			if (get_time_in_milliseconds()
-				- game_1->philos[i].last_meal_time > game_1->time_to_die)
+			pthread_mutex_lock(&game_1->state_mutex);
+			last = game_1->philos[i].last_meal_time;
+			is_full = game_1->philos[i].full;
+			pthread_mutex_unlock(&game_1->state_mutex);
+			if (get_time_in_milliseconds() - last > game_1->time_to_die)
 			{
-				game_1->is_someone_died = true;
+				// game_1->is_someone_died = true;
+				printf("%lld %ld is died\n", get_time_in_milliseconds()
+					- game_1->start_time_of_simulation,
+					game_1->philos[i].philo_id);
+				pthread_mutex_lock(&game_1->state_mutex);
 				game_1->end_simulation = true;
+				pthread_mutex_unlock(&game_1->state_mutex);
+				return (NULL);
 			}
-			if (game_1->philos[i].full)
-				game_1->num_of_full_philos++;
+			if (is_full)
+				full_count++;
 			i++;
 		}
-		if (game_1->num_of_full_philos == game_1->num_philo_must_eat)
+		if (full_count == count)
+		{
+			pthread_mutex_lock(&game_1->state_mutex);
 			game_1->end_simulation = true;
+			pthread_mutex_unlock(&game_1->state_mutex);
+			printf("everyone has eaten %ld times, is full\n",
+				game_1->num_philo_must_eat);
+			return (NULL);
+		}
 	}
 	return (NULL);
 }
@@ -224,13 +274,14 @@ int	main(int argc, char **argv)
 	game.start_time_of_simulation = get_time_in_milliseconds();
 	game.is_someone_died = false;
 	game.num_of_full_philos = 0;
-	game.end_simulation = game.is_someone_died
-		|| (game.num_of_full_philos == game.number_of_philo);
+	game.end_simulation = false;
 	printf("start_time_of_simulation :%lld \n", game.start_time_of_simulation);
 	// init forks
 	init_forks(&game);
 	// init philos?
 	init_philos(&game);
+	pthread_mutex_init(&game.state_mutex, NULL);
+	pthread_mutex_init(&game.print_mutex, NULL);
 	// create a monitor thread
 	pthread_create(&monitor_thread, NULL, monitor_die_or_full, &game);
 	// create thread in each philo in the game
@@ -242,5 +293,7 @@ int	main(int argc, char **argv)
 		i++;
 	}
 	pthread_join(monitor_thread, NULL);
+	pthread_mutex_destroy(&game.state_mutex);
+	pthread_mutex_destroy(&game.print_mutex);
 	// clean_game, destroy things, free memories
 }
