@@ -29,7 +29,7 @@ typedef struct s_game
 	long			time_to_die;
 	long			time_to_eat;
 	long			time_to_sleep;
-	long			start_time_of_simulation;
+	long long		start_time_of_simulation;
 	bool			num_of_full_philos;
 	bool			is_someone_died;
 	bool end_simulation; // a philo dead or everything is full
