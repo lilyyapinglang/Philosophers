@@ -13,8 +13,8 @@ typedef struct s_fork
 typedef struct s_philo
 {
 	long			philo_id;
-	t_fork			*left_fork;
-	t_fork			*right_fork;
+	t_fork			*first_fork;
+	t_fork			*second_fork;
 	struct s_game	*game;
 	long last_meal_time; // time passed from last meal
 	long			count_of_eat_times;

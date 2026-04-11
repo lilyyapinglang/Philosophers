@@ -47,15 +47,24 @@ int	init_philos(t_game *game)
 	while (i < count)
 	{
 		philos[i].philo_id = i + 1;
-		philos[i].left_fork = &game->forks[i];
-		if (i == 0)
-			philos[i].right_fork = &game->forks[count - 1];
-		else
-			philos[i].right_fork = &game->forks[i - 1];
 		philos[i].last_meal_time = 0;
 		philos[i].count_of_eat_times = 0;
 		philos[i].full = false;
 		philos[i].thread_id = philo_threads[i];
+		if (i % 2 == 0)
+		{
+			// id = odd set the first fork as the left one
+			philos[i].first_fork = &game->forks[i];
+			if (i == 0)
+				philos[i].second_fork = &game->forks[count - 1];
+			else
+				philos[i].second_fork = &game->forks[i - 1];
+		}
+		else // id =event, set first fork to right one
+		{
+			philos[i].first_fork = &game->forks[i - 1];
+			philos[i].second_fork = &game->forks[i];
+		}
 		i++;
 	}
 	game->philos = philos;
@@ -82,14 +91,15 @@ void	philo_eat(t_philo *philo)
 	struct timeval	current_time;
 
 	// philo take fork, lock 2 forks
-	pthread_mutex_lock(&philo->left_fork->fork);
+	//  if philo is even, pick right first
+	pthread_mutex_lock(&philo->first_fork->fork);
 	gettimeofday(&current_time, NULL);
 	printf("%ld %ld has take a fork %d\n", current_time.tv_usec,
-		philo->philo_id, philo->left_fork->fork_id);
-	pthread_mutex_lock(&philo->right_fork->fork);
+		philo->philo_id, philo->first_fork->fork_id);
+	pthread_mutex_lock(&philo->second_fork->fork);
 	gettimeofday(&current_time, NULL);
 	printf("%ld %ld has take a fork %d\n", current_time.tv_usec,
-		philo->philo_id, philo->right_fork->fork_id);
+		philo->philo_id, philo->second_fork->fork_id);
 	// philo eat
 	gettimeofday(&current_time, NULL);
 	printf("%ld %ld is eating\n", current_time.tv_usec, philo->philo_id);
@@ -97,8 +107,8 @@ void	philo_eat(t_philo *philo)
 	if (!usleep(philo->game->time_to_eat))
 		return ;
 	// philo put down fork, unlock 2 forks
-	pthread_mutex_unlock(&philo->left_fork->fork);
-	pthread_mutex_unlock(&philo->right_fork->fork);
+	pthread_mutex_unlock(&philo->first_fork->fork);
+	pthread_mutex_unlock(&philo->second_fork->fork);
 }
 
 void	*philo_routine(void *philo)
@@ -202,7 +212,8 @@ int	main(int argc, char **argv)
 	// init philos?
 	init_philos(&game);
 	// create a monitor thread
-	// pthread_create(&game.monitor_thread, NULL, monitor_die_or_full, &game);
+	// pthread_create(&game.monitor_thread, NULL, monitor_die_or_full,
+	//	&game);
 	while (!game.end_simulation)
 		// create thread in each philo in the game
 		start_philo(&game);
