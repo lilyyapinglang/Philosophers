@@ -70,6 +70,8 @@ int	init_philos(t_game *game)
 	int			count;
 	t_philo		*philos;
 
+	// int			left;
+	// int			right;
 	i = 0;
 	count = game->number_of_philo;
 	philos = malloc(sizeof(t_philo) * count);
@@ -96,10 +98,10 @@ int	init_philos(t_game *game)
 			philos[i].first_fork = &game->forks[i - 1];
 			philos[i].second_fork = &game->forks[i];
 		}
+
 		i++;
 	}
 	game->philos = philos;
-	// philos->game = game;
 	return (0);
 }
 
@@ -109,6 +111,7 @@ void	philo_think(t_philo *philo)
 		return ;
 	printf("%lld %ld is thinking\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id);
+	usleep(500);
 }
 void	philo_sleep(t_philo *philo)
 {
@@ -126,7 +129,7 @@ void	philo_eat(t_philo *philo)
 	if (is_simulation_over(philo->game))
 		return ;
 	pthread_mutex_lock(&philo->first_fork->fork);
-	if (!is_simulation_over(philo->game))
+	if (is_simulation_over(philo->game))
 	{
 		pthread_mutex_unlock(&philo->first_fork->fork);
 		return ;
@@ -134,7 +137,7 @@ void	philo_eat(t_philo *philo)
 	printf("%lld %ld has take a fork %d\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id, philo->first_fork->fork_id);
 	pthread_mutex_lock(&philo->second_fork->fork);
-	if (!is_simulation_over(philo->game))
+	if (is_simulation_over(philo->game))
 	{
 		pthread_mutex_unlock(&philo->first_fork->fork);
 		pthread_mutex_unlock(&philo->second_fork->fork);
@@ -142,7 +145,6 @@ void	philo_eat(t_philo *philo)
 	}
 	printf("%lld %ld has take a fork %d\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id, philo->second_fork->fork_id);
-	// philo eat
 	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->last_meal_time = get_time_in_milliseconds();
 	pthread_mutex_unlock(&philo->game->state_mutex);
@@ -151,7 +153,8 @@ void	philo_eat(t_philo *philo)
 	usleep(philo->game->time_to_eat * 1000);
 	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->count_of_eat_times++;
-	philo->full = (philo->count_of_eat_times >= philo->game->num_philo_must_eat) ? true : false;
+	if (philo->game->num_philo_must_eat != -1)
+		philo->full = (philo->count_of_eat_times >= philo->game->num_philo_must_eat) ? true : false;
 	pthread_mutex_unlock(&philo->game->state_mutex);
 	pthread_mutex_unlock(&philo->first_fork->fork);
 	pthread_mutex_unlock(&philo->second_fork->fork);
@@ -163,15 +166,18 @@ void	*philo_routine(void *philo)
 
 	// is full ?
 	philo_1 = philo;
-	// if (philo_1->full)
-	// 	return (NULL);
+	if (philo_1->game->number_of_philo == 1)
+	{
+		printf("%lld 1 has taken a fork\n", get_time_in_milliseconds()
+			- get_start_time(philo_1));
+		return (NULL);
+	}
+	if (philo_1->philo_id % 2 == 0)
+		usleep(1000); // 1ms delay
 	while (!is_simulation_over(philo_1->game))
 	{
-		// eat
 		philo_eat(philo_1);
-		// philo sleep?
 		philo_sleep(philo_1);
-		// philo think ?
 		philo_think(philo_1);
 	}
 	return (NULL);
@@ -181,7 +187,6 @@ void	start_philo(t_game *game)
 	int	num;
 	int	i;
 
-	// create an array of philo;
 	i = 0;
 	num = game->number_of_philo;
 	// create threads for each philo,  thread, attributes, function_2_call,
@@ -227,7 +232,7 @@ void	*monitor_die_or_full(void *game)
 			if (get_time_in_milliseconds() - last > game_1->time_to_die)
 			{
 				// game_1->is_someone_died = true;
-				printf("%lld %ld is died\n", get_time_in_milliseconds()
+				printf("%lld %ld died\n", get_time_in_milliseconds()
 					- game_1->start_time_of_simulation,
 					game_1->philos[i].philo_id);
 				pthread_mutex_lock(&game_1->state_mutex);
@@ -239,7 +244,7 @@ void	*monitor_die_or_full(void *game)
 				full_count++;
 			i++;
 		}
-		if (full_count == count)
+		if (game_1->num_philo_must_eat != -1 && full_count == count)
 		{
 			pthread_mutex_lock(&game_1->state_mutex);
 			game_1->end_simulation = true;
@@ -265,10 +270,16 @@ int	main(int argc, char **argv)
 		return (1);
 	// validity check
 	// TODO atoi
+	// if (atoi(argv[1]) == 1)
+	// {
+	// 	printf("%lld %d died\n", get_time_in_milliseconds(), 1);
+	// 	return (0);
+	// }
 	game.number_of_philo = atoi(argv[1]);
 	game.time_to_die = atoi(argv[2]);
 	game.time_to_eat = atoi(argv[3]);
 	game.time_to_sleep = atoi(argv[4]);
+	game.num_philo_must_eat = -1;
 	if (argc == 6 && argv[5])
 		game.num_philo_must_eat = atoi(argv[5]);
 	game.start_time_of_simulation = get_time_in_milliseconds();
