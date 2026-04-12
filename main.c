@@ -98,7 +98,6 @@ int	init_philos(t_game *game)
 			philos[i].first_fork = &game->forks[i - 1];
 			philos[i].second_fork = &game->forks[i];
 		}
-
 		i++;
 	}
 	game->philos = philos;
@@ -249,12 +248,32 @@ void	*monitor_die_or_full(void *game)
 			pthread_mutex_lock(&game_1->state_mutex);
 			game_1->end_simulation = true;
 			pthread_mutex_unlock(&game_1->state_mutex);
-			printf("everyone has eaten %ld times, is full\n",
+			printf("everyone has eaten %d times, is full\n",
 				game_1->num_philo_must_eat);
 			return (NULL);
 		}
 	}
 	return (NULL);
+}
+
+bool	contains_only_digit(char **str)
+{
+	int		i;
+	char	**str_ptr;
+
+	str_ptr = str;
+	i = 1;
+	while (str_ptr[i])
+	{
+		while (*str_ptr[i])
+		{
+			if (*str_ptr[i] > '9' || *str_ptr[i] < '0')
+				return (false);
+			str_ptr[i]++;
+		}
+		i++;
+	}
+	return (true);
 }
 
 // ./philo num_of_philo time_to_die time_to_eat time_to_sleep [num_of_times_must_eat]
@@ -265,23 +284,53 @@ int	main(int argc, char **argv)
 	int			i;
 	pthread_t	monitor_thread;
 
-	if (argc < 5)
-		// not enough argument
-		return (1);
+	if (!(argc == 5 || argc == 6))
+	// not enough argument
+	{
+		printf("4 or 5 arguments are requied, you entered\
+			%d. Please try again.\n",
+				argc - 1);
+		return (-1);
+	}
 	// validity check
-	// TODO atoi
-	// if (atoi(argv[1]) == 1)
-	// {
-	// 	printf("%lld %d died\n", get_time_in_milliseconds(), 1);
-	// 	return (0);
-	// }
-	game.number_of_philo = atoi(argv[1]);
-	game.time_to_die = atoi(argv[2]);
-	game.time_to_eat = atoi(argv[3]);
-	game.time_to_sleep = atoi(argv[4]);
+	// check each argv str to see if they are empty str, str only with numbers,
+	//	so that ft_atoi can be applied.
+	// ++ // -- ? accept or not
+	printf("argv[2] is %s\n", argv[2]);
+	if (!contains_only_digit(&argv[1]))
+	{
+		printf("Only accept numbers as arguments,\
+			please pass only numbers. \n");
+		return (-1);
+	}
+	// because there is only digit , i guess it can not be negative,
+	//	so it is ok to not check
+	// check 0 . they can not be 0 ;
+	game.number_of_philo = ft_atoi(argv[1]);
+	printf("number of philo is %d\n", game.number_of_philo);
+	if (game.number_of_philo == 0 || game.number_of_philo > 200)
+	{
+		printf("Consider to enter philosopher numbers from 1 to 200,you entered\
+			%d\n",
+				game.number_of_philo);
+		return (-1);
+	}
+	// where do I lose my pointer.....
+	printf("argv[2] is %s\n", argv[2]);
+	printf("argv[3] is %s\n", argv[3]);
+	printf("argv[4] is %s\n", argv[4]);
+	game.time_to_die = ft_atoi(argv[2]);
+	game.time_to_eat = ft_atoi(argv[3]);
+	game.time_to_sleep = ft_atoi(argv[4]);
+	if (game.time_to_die < 60 || game.time_to_eat < 60
+		|| game.time_to_sleep < 60)
+	{
+		printf("Consider set time_to_die or time_to_eat or time_to_sleep to values more than 60 ms. \n");
+		return (-1);
+	}
 	game.num_philo_must_eat = -1;
 	if (argc == 6 && argv[5])
-		game.num_philo_must_eat = atoi(argv[5]);
+		game.num_philo_must_eat = ft_atoi(argv[5]);
 	game.start_time_of_simulation = get_time_in_milliseconds();
 	game.is_someone_died = false;
 	game.num_of_full_philos = 0;

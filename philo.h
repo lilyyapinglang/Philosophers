@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#define INT_MAX 2147483647
+
 typedef struct s_fork
 {
 	int fork_id; // debug purpose
@@ -22,13 +24,17 @@ typedef struct s_philo
 	pthread_t thread_id; // a philo is a thread
 }					t_philo;
 
+/*
+ 2147483647 millieseconds = 24.85 days
+ so int is more than enough for this philo projet
+*/
 typedef struct s_game
 {
-	long num_philo_must_eat; // flag if -1 ?
-	long			number_of_philo;
-	long			time_to_die;
-	long			time_to_eat;
-	long			time_to_sleep;
+	int num_philo_must_eat; // flag if -1 ?
+	int				number_of_philo;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
 	long long		start_time_of_simulation;
 	bool			num_of_full_philos;
 	bool			is_someone_died;
@@ -39,3 +45,5 @@ typedef struct s_game
 	pthread_mutex_t	state_mutex;
 	pthread_mutex_t	print_mutex;
 }					t_game;
+
+int					ft_atoi(char *str);
