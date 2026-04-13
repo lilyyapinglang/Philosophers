@@ -65,17 +65,17 @@ typedef struct s_philo
 */
 int	init_philos(t_game *game)
 {
-	int			i;
-	pthread_t	*philo_threads;
-	int			count;
-	t_philo		*philos;
+	int		i;
+	int		count;
+	t_philo	*philos;
 
+	// pthread_t	*philo_threads;
 	// int			left;
 	// int			right;
 	i = 0;
 	count = game->number_of_philo;
 	philos = malloc(sizeof(t_philo) * count);
-	philo_threads = malloc(sizeof(pthread_t) * count);
+	// philo_threads = malloc(sizeof(pthread_t) * count);
 	while (i < count)
 	{
 		philos[i].philo_id = i + 1;
@@ -106,11 +106,18 @@ int	init_philos(t_game *game)
 
 void	philo_think(t_philo *philo)
 {
+	long long	think_time;
+
 	if (is_simulation_over(philo->game))
 		return ;
 	printf("%lld %ld is thinking\n", get_time_in_milliseconds()
 		- get_start_time(philo), philo->philo_id);
-	usleep(500);
+	think_time = philo->game->time_to_die - philo->game->time_to_eat
+		- philo->game->time_to_sleep;
+	if (think_time > 0)
+		usleep((think_time / 2) * 1000);
+	else
+		usleep(500);
 }
 void	philo_sleep(t_philo *philo)
 {
@@ -256,20 +263,20 @@ void	*monitor_die_or_full(void *game)
 	return (NULL);
 }
 
-bool	contains_only_digit(char **str)
+bool	contains_only_digit(int argc, char **argv)
 {
-	int		i;
-	char	**str_ptr;
+	int	i;
+	int	j;
 
-	str_ptr = str;
 	i = 1;
-	while (str_ptr[i])
+	while (i < argc)
 	{
-		while (*str_ptr[i])
+		j = 0;
+		while (argv[i][j])
 		{
-			if (*str_ptr[i] > '9' || *str_ptr[i] < '0')
+			if (argv[i][j] > '9' || argv[i][j] < '0')
 				return (false);
-			str_ptr[i]++;
+			j++;
 		}
 		i++;
 	}
@@ -284,11 +291,11 @@ int	main(int argc, char **argv)
 	int			i;
 	pthread_t	monitor_thread;
 
-	if (!(argc == 5 || argc == 6))
 	// not enough argument
+	if (!(argc == 5 || argc == 6))
 	{
 		printf("4 or 5 arguments are requied, you entered\
-			%d. Please try again.\n",
+			%d argument. Please try again.\n",
 				argc - 1);
 		return (-1);
 	}
@@ -296,18 +303,16 @@ int	main(int argc, char **argv)
 	// check each argv str to see if they are empty str, str only with numbers,
 	//	so that ft_atoi can be applied.
 	// ++ // -- ? accept or not
-	printf("argv[2] is %s\n", argv[2]);
-	if (!contains_only_digit(&argv[1]))
+	if (!contains_only_digit(argc, argv))
 	{
-		printf("Only accept numbers as arguments,\
-			please pass only numbers. \n");
+		printf("Only accept non negative numbers as arguments,\
+			please pass correct numbers. \n");
 		return (-1);
 	}
-	// because there is only digit , i guess it can not be negative,
+	//  because there is only digit , i guess it can not be negative,
 	//	so it is ok to not check
-	// check 0 . they can not be 0 ;
+	//  check 0 . they can not be 0;
 	game.number_of_philo = ft_atoi(argv[1]);
-	printf("number of philo is %d\n", game.number_of_philo);
 	if (game.number_of_philo == 0 || game.number_of_philo > 200)
 	{
 		printf("Consider to enter philosopher numbers from 1 to 200,you entered\
@@ -315,10 +320,6 @@ int	main(int argc, char **argv)
 				game.number_of_philo);
 		return (-1);
 	}
-	// where do I lose my pointer.....
-	printf("argv[2] is %s\n", argv[2]);
-	printf("argv[3] is %s\n", argv[3]);
-	printf("argv[4] is %s\n", argv[4]);
 	game.time_to_die = ft_atoi(argv[2]);
 	game.time_to_eat = ft_atoi(argv[3]);
 	game.time_to_sleep = ft_atoi(argv[4]);
@@ -335,8 +336,9 @@ int	main(int argc, char **argv)
 	game.is_someone_died = false;
 	game.num_of_full_philos = 0;
 	game.end_simulation = false;
-	printf("start_time_of_simulation :%lld \n", game.start_time_of_simulation);
-	// init forks
+	// printf("start_time_of_simulation :%lld \n",
+	//	game.start_time_of_simulation);
+	//  init forks
 	init_forks(&game);
 	// init philos?
 	init_philos(&game);
