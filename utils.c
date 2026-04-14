@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:01:00 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/14 18:41:04 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/14 20:08:23 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,41 +43,41 @@ int	ft_atoi(char *str)
 	}
 	return (nbr * sign);
 }
+void	join_philo_threads(t_game *game)
+{
+	int	i;
 
+	i = 0;
+	while (i < game->number_of_philo)
+	{
+		pthread_join(game->philos[i].thread_id, NULL);
+		i++;
+	}
+}
 
 void	cleanup_game(t_game *game, int stage)
 {
-	int i;
+	int	i;
 
 	if (stage >= STAGE_THREADS)
-	{
-		i = 0;
-		while (i < game->number_of_philo)
-		{
-			pthread_join(game->philos[i].thread_id, NULL);
-			i++;
-		}
-	}
+		join_philo_threads(game);
 	pthread_join(game->monitor_thread, NULL);
-
 	if (stage >= STAGE_MUTEXES)
 	{
 		pthread_mutex_destroy(&game->state_mutex);
 		pthread_mutex_destroy(&game->print_mutex);
 	}
-
-	if(stage >=STAGE_FORKS && game->forks)
+	if (stage >= STAGE_FORKS && game->forks)
 	{
-		i=0;
-		while(i<game->number_of_philo)
+		i = 0;
+		while (i < game->number_of_philo)
 		{
 			pthread_mutex_destroy(&game->forks[i].fork);
 			i++;
 		}
 	}
-
-	if(stage>=STAGE_PHILOS && game->philos)
+	if (stage >= STAGE_PHILOS && game->philos)
 		free(game->philos);
-	if(stage>=STAGE_FORKS &&game->forks)
+	if (stage >= STAGE_FORKS && game->forks)
 		free(game->forks);
 }

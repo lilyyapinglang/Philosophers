@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:01:04 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/14 19:52:56 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/14 20:03:33 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,18 +246,42 @@ int	start_philo_simulation(t_game *game)
 	return (0);
 }
 
+bool	check_philo_die(int i, t_game *game_real, int count,
+		int full_philo_count)
+{
+	long long	last_eat_time;
+	bool		is_full;
+
+	while (i < count)
+	{
+		pthread_mutex_lock(&game_real->state_mutex);
+		last_eat_time = game_real->philos[i].last_meal_time;
+		is_full = game_real->philos[i].full;
+		pthread_mutex_unlock(&game_real->state_mutex);
+		if (get_time_in_milliseconds() - last_eat_time > game_real->time_to_die)
+		{
+			log_action(&game_real->philos[i], "died");
+			pthread_mutex_lock(&game_real->state_mutex);
+			game_real->end_simulation = true;
+			pthread_mutex_unlock(&game_real->state_mutex);
+			return (true);
+		}
+		if (is_full)
+			full_philo_count++;
+		i++;
+	}
+	return (false);
+}
 /*
 	as philo (aka thread) does not communicate with each other
 	and they(each thread) don't know if another thread is about to die
 */
 void	*monitor_die_or_full(void *game)
 {
-	int			i;
-	int			count;
-	t_game		*game_real;
-	int			full_philo_count;
-	long long	last_eat_time;
-	bool		is_full;
+	int		i;
+	int		count;
+	t_game	*game_real;
+	int		full_philo_count;
 
 	full_philo_count = 0;
 	game_real = game;
@@ -268,25 +292,8 @@ void	*monitor_die_or_full(void *game)
 		usleep(1000);
 		i = 0;
 		full_philo_count = 0;
-		while (i < count)
-		{
-			pthread_mutex_lock(&game_real->state_mutex);
-			last_eat_time = game_real->philos[i].last_meal_time;
-			is_full = game_real->philos[i].full;
-			pthread_mutex_unlock(&game_real->state_mutex);
-			if (get_time_in_milliseconds()
-				- last_eat_time > game_real->time_to_die)
-			{
-				log_action(&game_real->philos[i], "died");
-				pthread_mutex_lock(&game_real->state_mutex);
-				game_real->end_simulation = true;
-				pthread_mutex_unlock(&game_real->state_mutex);
-				return (NULL);
-			}
-			if (is_full)
-				full_philo_count++;
-			i++;
-		}
+		if (check_philo_die(i, game_real, count, full_philo_count))
+			return (NULL);
 		if (game_real->num_philo_must_eat != -1 && full_philo_count == count)
 		{
 			pthread_mutex_lock(&game_real->state_mutex);
