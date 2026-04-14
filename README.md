@@ -33,4 +33,14 @@ int, signed,
 
 what is this number of bigger than INT_MAX and smaller than INT_MIN 
 
+
+printf 
+
+printf is not atomic — one thread can interrupt another halfway through writing a line.  multiple threads write to stdout simultaneously.
+
+
 # Resources
+
+https://nafuka11.github.io/philosophers-visualizer/
+
+https://www.youtube.com/watch?v=d9s_d28yJq0
