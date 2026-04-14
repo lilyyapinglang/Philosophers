@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:01:04 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/14 19:49:40 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/14 19:52:56 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,6 +319,10 @@ bool	contains_only_digit(int argc, char **argv)
 }
 int	init(t_game *game, int argc, char **argv)
 {
+	if (!(argc == 5 || argc == 6))
+		return (printf("invalid number of argeuments\n"), -1);
+	if (!contains_only_digit(argc, argv))
+		return (printf("Arguments must be positive numbers\n"), -1);
 	game->number_of_philo = ft_atoi(argv[1]);
 	if (game->number_of_philo == 0 || game->number_of_philo > 200)
 		return (printf("invalid number of philo, from 1 to 200 \n"), -1);
@@ -340,6 +344,16 @@ int	init(t_game *game, int argc, char **argv)
 	game->philos = NULL;
 	return (0);
 }
+
+void	wait_threads(t_game *game)
+{
+	int	i;
+
+	i = 0;
+	while (i < game->number_of_philo)
+		pthread_join(game->philos[i++].thread_id, NULL);
+	pthread_join(game->monitor_thread, NULL);
+}
 /*
 ./philo num_of_philo time_to_die time_to_eat time_to_sleep [num_of_times_must_eat]
 ./ philo 2 100 100 100 5
@@ -347,15 +361,9 @@ int	init(t_game *game, int argc, char **argv)
 int	main(int argc, char **argv)
 {
 	t_game	game;
-	int		i;
 	int		stage;
 
 	stage = STAGE_NONE;
-	// not enough argument
-	if (!(argc == 5 || argc == 6))
-		return (printf("invalid number of argeuments\n"), -1);
-	if (!contains_only_digit(argc, argv))
-		return (printf("Arguments must be positive numbers\n"), -1);
 	if (init(&game, argc, argv) != 0)
 		return (-1);
 	if (init_forks(&game) != 0)
@@ -374,9 +382,6 @@ int	main(int argc, char **argv)
 	if (start_philo_simulation(&game) != 0)
 		return (cleanup_game(&game, stage), -1);
 	stage = STAGE_THREADS;
-	i = 0;
-	while (i < game.number_of_philo)
-		pthread_join(game.philos[i++].thread_id, NULL);
-	pthread_join(game.monitor_thread, NULL);
+	wait_threads(&game);
 	cleanup_game(&game, stage);
 }
