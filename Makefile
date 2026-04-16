@@ -3,7 +3,7 @@ NAME := philo
 CC := cc
 CFLAGS := -Wall -Wextra -Werror -MMD -MP
 
-SRCS := main.c utils.c
+SRCS := main.c #utils.c
 
 OBJ_DIR := obj
 OBJS := $(SRCS:%.c=$(OBJ_DIR)/%.o)

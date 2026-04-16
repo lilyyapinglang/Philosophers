@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
+/*   By: lilypad <lilypad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:03:37 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/14 18:40:42 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/16 19:58:04 by lilypad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 # include <unistd.h>
 
 # define INT_MAX 2147483647
+# define INT_MIN -2147483648
+# define LONG_MAX 9223372036854775807
 # define STAGE_NONE 0
 # define STAGE_FORKS 1
 # define STAGE_PHILOS 2
@@ -41,7 +43,7 @@ typedef struct s_philo
 	struct s_game	*game;
 	long			last_meal_time;
 	long			count_of_eat_times;
-	bool			full;
+	bool full;
 	pthread_t		thread_id;
 }					t_philo;
 
@@ -59,13 +61,13 @@ typedef struct s_game
 	int				time_to_eat;
 	int				time_to_sleep;
 	long long		start_time_of_simulation;
-	bool			num_of_full_philos;
 	bool			end_simulation;
 	pthread_t		monitor_thread;
 	t_fork			*forks;
 	t_philo			*philos;
 	pthread_mutex_t	state_mutex;
 	pthread_mutex_t	print_mutex;
+	pthread_mutex_t meal_mutex;
 }					t_game;
 
 int					ft_atoi(char *str);
