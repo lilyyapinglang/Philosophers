@@ -197,10 +197,12 @@ void	philo_think(t_philo *philo)
 	log_action(philo, "is thinking");
 	think_time = philo->game->time_to_die - philo->game->time_to_eat
 		- philo->game->time_to_sleep;
-	if (think_time > 20)
+	// if (think_time > 20)
+	// 	precise_sleep(philo->game, think_time / 2);
+	// else
+	// 	precise_sleep(philo->game, 1);
+	if (think_time > 0)
 		precise_sleep(philo->game, think_time / 2);
-	else
-		precise_sleep(philo->game, 1);
 }
 
 void	philo_sleep(t_philo *philo)
@@ -255,14 +257,13 @@ void	*philo_routine(void *philo)
 	philo_real = philo;
 	if (philo_real->game->number_of_philo == 1)
 	{
-		log_action(philo, "has taken a fork");
+		log_action(philo_real, "has taken a fork");
 		while (!is_simulation_over(philo_real->game))
 			precise_sleep(philo_real->game, 1000);
 		return (NULL);
 	}
 	if (philo_real->philo_id % 2 == 0)
-		// precise_sleep(philo_real->game, philo_real->game->time_to_eat / 2);
-		precise_sleep(philo_real->game, philo_real->philo_id * 2);
+		precise_sleep(philo_real->game, philo_real->game->time_to_eat);
 	while (!is_simulation_over(philo_real->game))
 	{
 		philo_eat(philo_real);
@@ -301,11 +302,13 @@ void	log_death(t_philo *philo)
 	pthread_mutex_unlock(&philo->game->print_mutex);
 }
 
-bool	check_philo_die(int i, t_game *game_real, int count, int *full_count)
+bool	check_philo_die(t_game *game_real, int count, int *full_count)
 {
 	long long	last_eat;
 	bool		full;
+	int			i;
 
+	i = 0;
 	while (i < count)
 	{
 		pthread_mutex_lock(&game_real->state_mutex);
@@ -337,7 +340,6 @@ bool	check_philo_die(int i, t_game *game_real, int count, int *full_count)
 */
 void	*monitor_die_or_full(void *game)
 {
-	int		i;
 	int		count;
 	t_game	*game_real;
 	int		full_philo_count;
@@ -345,14 +347,12 @@ void	*monitor_die_or_full(void *game)
 	full_philo_count = 0;
 	game_real = game;
 	count = game_real->number_of_philo;
-	i = 0;
 	while (!is_simulation_over(game_real))
 	{
 		// usleep(500); // or even 200
 		usleep(1000);
-		i = 0;
 		full_philo_count = 0;
-		if (check_philo_die(i, game_real, count, &full_philo_count))
+		if (check_philo_die(game_real, count, &full_philo_count))
 			return (NULL);
 		if (game_real->num_philo_must_eat != -1 && full_philo_count == count)
 		{
@@ -403,7 +403,7 @@ int	init(t_game *game, int argc, char **argv)
 	if (argc == 6 && argv[5])
 		game->num_philo_must_eat = ft_atoi(argv[5]);
 	if (game->num_philo_must_eat == 0)
-		return (printf("Must eat count must be >= 0 \n"), -1);
+		return (printf("Must eat count must be >= 1 \n"), -1);
 	game->start_time_of_simulation = get_time_in_milliseconds();
 	game->end_simulation = false;
 	game->state_mutex_init = false;
@@ -446,7 +446,13 @@ int	main(int argc, char **argv)
 			&game) != 0)
 		return (cleanup_game(&game), -1);
 	if (start_philo_simulation(&game) != 0)
+	{
+		pthread_mutex_lock(&game.state_mutex);
+		game.end_simulation = true;
+		pthread_mutex_unlock(&game.state_mutex);
+		pthread_join(game.monitor_thread, NULL);
 		return (cleanup_game(&game), -1);
+	}
 	wait_threads(&game);
 	cleanup_game(&game);
 }
