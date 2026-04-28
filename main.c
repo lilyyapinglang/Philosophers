@@ -53,6 +53,7 @@ void	cleanup_game(t_game *game)
 	if (game->print_mutex_init)
 		pthread_mutex_destroy(&game->print_mutex);
 }
+
 // int gettimeofday(struct timeval *restrict tp, void *restrict tzp);
 long long	get_time_in_milliseconds(void)
 {
@@ -149,28 +150,29 @@ int	init_philos(t_game *game)
 	game->philos = philos;
 	return (0);
 }
+
 void	precise_sleep(t_game *game, long long duration_ms)
 {
 	long long	start;
 	long long	elapsed;
-	long long	remaining;
 
+	// long long	remaining;
 	start = get_time_in_milliseconds();
 	while (!is_simulation_over(game))
 	{
 		elapsed = get_time_in_milliseconds() - start;
 		if (elapsed >= duration_ms)
 			break ;
-		// usleep(100); // smaller granularity
-		remaining = duration_ms - elapsed;
-		if (remaining > 5)
-			usleep(remaining * 500); // sleep most of it
-		else
-			usleep(50);
+		usleep(100);
+		// remaining = duration_ms - elapsed;
+		// if (remaining > 5)
+		// 	usleep(remaining * 500); // sleep most of it
+		// else
+		// 	usleep(50);
 	}
 }
 /*
-only one philo thread can printf at a time — lines are always complete and clean.
+only one philo thread can printf at a time, lines are always complete and clean.
 */
 
 void	log_action(t_philo *philo, char *msg)
@@ -188,6 +190,7 @@ void	log_action(t_philo *philo, char *msg)
 		- philo->game->start_time_of_simulation, philo->philo_id, msg);
 	pthread_mutex_unlock(&philo->game->print_mutex);
 }
+
 void	philo_think(t_philo *philo)
 {
 	long long	think_time;
@@ -294,6 +297,7 @@ int	start_philo_simulation(t_game *game)
 	}
 	return (0);
 }
+
 void	log_death(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->game->print_mutex);
@@ -334,6 +338,7 @@ bool	check_philo_die(t_game *game_real, int count, int *full_count)
 	}
 	return (false);
 }
+
 /*
 	as philo (aka thread) does not communicate with each other
 	and they(each thread) don't know if another thread is about to die
@@ -349,7 +354,6 @@ void	*monitor_die_or_full(void *game)
 	count = game_real->number_of_philo;
 	while (!is_simulation_over(game_real))
 	{
-		// usleep(500); // or even 200
 		usleep(1000);
 		full_philo_count = 0;
 		if (check_philo_die(game_real, count, &full_philo_count))
@@ -384,12 +388,13 @@ bool	contains_only_digit(int argc, char **argv)
 	}
 	return (true);
 }
+
 int	init(t_game *game, int argc, char **argv)
 {
 	if (!(argc == 5 || argc == 6))
 		return (printf("invalid number of argeuments\n"), -1);
 	if (!contains_only_digit(argc, argv))
-		return (printf("Arguments must be positive numbers\n"), -1);
+		return (printf("Arguments must be positive numbers&only digits\n"), -1);
 	game->number_of_philo = ft_atoi(argv[1]);
 	if (game->number_of_philo == 0 || game->number_of_philo > 200)
 		return (printf("invalid number of philo, from 1 to 200 \n"), -1);
