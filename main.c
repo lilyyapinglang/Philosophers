@@ -153,6 +153,7 @@ void	precise_sleep(t_game *game, long long duration_ms)
 {
 	long long	start;
 	long long	elapsed;
+	long long	remaining;
 
 	start = get_time_in_milliseconds();
 	while (!is_simulation_over(game))
@@ -160,7 +161,12 @@ void	precise_sleep(t_game *game, long long duration_ms)
 		elapsed = get_time_in_milliseconds() - start;
 		if (elapsed >= duration_ms)
 			break ;
-		usleep(100); // smaller granularity
+		// usleep(100); // smaller granularity
+		remaining = duration_ms - elapsed;
+		if (remaining > 5)
+			usleep(remaining * 500); // sleep most of it
+		else
+			usleep(50);
 	}
 }
 /*
@@ -255,7 +261,8 @@ void	*philo_routine(void *philo)
 		return (NULL);
 	}
 	if (philo_real->philo_id % 2 == 0)
-		precise_sleep(philo_real->game, philo_real->game->time_to_eat / 2);
+		// precise_sleep(philo_real->game, philo_real->game->time_to_eat / 2);
+		precise_sleep(philo_real->game, philo_real->philo_id * 2);
 	while (!is_simulation_over(philo_real->game))
 	{
 		philo_eat(philo_real);
@@ -305,7 +312,7 @@ bool	check_philo_die(int i, t_game *game_real, int count, int *full_count)
 		last_eat = game_real->philos[i].last_meal_time;
 		full = game_real->philos[i].full;
 		pthread_mutex_unlock(&game_real->state_mutex);
-		if (get_time_in_milliseconds() - last_eat >= game_real->time_to_die)
+		if (get_time_in_milliseconds() - last_eat > game_real->time_to_die)
 		{
 			pthread_mutex_lock(&game_real->state_mutex);
 			if (!game_real->end_simulation)
@@ -341,7 +348,8 @@ void	*monitor_die_or_full(void *game)
 	i = 0;
 	while (!is_simulation_over(game_real))
 	{
-		usleep(500); // or even 200
+		// usleep(500); // or even 200
+		usleep(1000);
 		i = 0;
 		full_philo_count = 0;
 		if (check_philo_die(i, game_real, count, &full_philo_count))
