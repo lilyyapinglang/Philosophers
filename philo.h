@@ -6,7 +6,7 @@
 /*   By: lilypad <lilypad@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:03:37 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/16 19:58:04 by lilypad          ###   ########.fr       */
+/*   Updated: 2026/04/28 13:52:41 by lilypad          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ typedef struct s_philo
 	struct s_game	*game;
 	long			last_meal_time;
 	long			count_of_eat_times;
-	bool full;
+	bool			full;
 	pthread_t		thread_id;
 }					t_philo;
 
@@ -67,10 +67,11 @@ typedef struct s_game
 	t_philo			*philos;
 	pthread_mutex_t	state_mutex;
 	pthread_mutex_t	print_mutex;
-	pthread_mutex_t meal_mutex;
+	bool			state_mutex_init;
+	bool			print_mutex_init;
 }					t_game;
 
 int					ft_atoi(char *str);
-void				cleanup_game(t_game *game, int stage);
+void				cleanup_game(t_game *game);
 
 #endif
