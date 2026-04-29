@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:00:52 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:10:31 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:14:30 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	*philo_routine(void *philo)
 {
-	t_philo *philo_real;
+	t_philo	*philo_real;
 
 	philo_real = philo;
 	if (philo_real->game->number_of_philo == 1)
