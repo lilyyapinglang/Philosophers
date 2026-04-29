@@ -6,11 +6,11 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:04:42 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:05:53 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:28:46 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 
 void	philo_think(t_philo *philo)
 {

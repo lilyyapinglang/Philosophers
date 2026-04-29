@@ -6,11 +6,11 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:01:53 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:02:26 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:56:49 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 
 void	cleanup_game(t_game *game)
 {

@@ -6,11 +6,11 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:04:29 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:08:56 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:28:55 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 
 bool	is_simulation_over(t_game *game)
 {

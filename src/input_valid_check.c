@@ -6,11 +6,11 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:01:59 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:09:51 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:28:20 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 
 static int	skip_spaces(char *str)
 {

@@ -6,11 +6,11 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:02:02 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:14:16 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:28:27 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 
 int	init(t_game *game, int argc, char **argv)
 {

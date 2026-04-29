@@ -6,14 +6,15 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:00:56 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:06:03 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:29:42 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../philo.h"
 /*
 int			gettimeofday(struct timeval *restrict tp, void *restrict tzp);
 */
+
 long long	get_time_in_milliseconds(void)
 {
 	struct timeval	current_time;
