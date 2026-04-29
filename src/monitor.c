@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:04:29 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:28:55 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 16:38:00 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ bool	is_simulation_over(t_game *game)
 	return (result);
 }
 
-static bool	set_philo_dead(t_game *game, int i)
+bool	set_philo_dead(t_game *game, int i)
 {
 	pthread_mutex_lock(&game->state_mutex);
 	if (game->end_simulation)

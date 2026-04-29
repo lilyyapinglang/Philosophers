@@ -6,12 +6,18 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:04:42 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:28:46 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 17:04:26 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philo.h"
 
+/*
+ no requirment on thinking time, to control when philo can philo_eat again.
+ adaptive thinking...if there is large enough budget,
+ then i can try wait half of think time before reach for fork
+ otherwise time budget is short, i don't wait.
+*/
 void	philo_think(t_philo *philo)
 {
 	long long	think_time;
@@ -33,7 +39,7 @@ void	philo_sleep(t_philo *philo)
 	precise_sleep(philo->game, philo->game->time_to_sleep);
 }
 
-static bool	philo_grab_forks(t_philo *philo)
+bool	philo_take_forks(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->first_fork->fork);
 	if (is_simulation_over(philo->game))
@@ -53,7 +59,7 @@ static bool	philo_grab_forks(t_philo *philo)
 	return (true);
 }
 
-static void	philo_release_forks(t_philo *philo)
+void	philo_release_forks(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->count_of_eat_times++;
@@ -69,7 +75,7 @@ void	philo_eat(t_philo *philo)
 {
 	if (is_simulation_over(philo->game))
 		return ;
-	if (!philo_grab_forks(philo))
+	if (!philo_take_forks(philo))
 		return ;
 	pthread_mutex_lock(&philo->game->state_mutex);
 	philo->last_meal_time = get_time_in_milliseconds();

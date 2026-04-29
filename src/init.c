@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:02:02 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:28:27 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 16:29:16 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,29 @@ int	init_forks(t_game *game)
 	return (0);
 }
 
+/*
+only the last philosopher: left=count-1, right=0
+picks lower index first to break the circular wait
+*/
+void	assign_forks(int i, t_philo *philos, t_game *game, int count)
+{
+	int	left;
+	int	right;
+
+	left = i;
+	right = (i + 1) % count;
+	if (left < right)
+	{
+		philos[i].first_fork = &game->forks[left];
+		philos[i].second_fork = &game->forks[right];
+	}
+	else
+	{
+		philos[i].first_fork = &game->forks[right];
+		philos[i].second_fork = &game->forks[left];
+	}
+}
+
 int	init_philos(t_game *game)
 {
 	int		i;
@@ -102,27 +125,4 @@ int	init_philos(t_game *game)
 	}
 	game->philos = philos;
 	return (0);
-}
-
-/*
-only the last philosopher: left=count-1, right=0
-picks lower index first to break the circular wait
-*/
-void	assign_forks(int i, t_philo *philos, t_game *game, int count)
-{
-	int	left;
-	int	right;
-
-	left = i;
-	right = (i + 1) % count;
-	if (left < right)
-	{
-		philos[i].first_fork = &game->forks[left];
-		philos[i].second_fork = &game->forks[right];
-	}
-	else
-	{
-		philos[i].first_fork = &game->forks[right];
-		philos[i].second_fork = &game->forks[left];
-	}
 }
