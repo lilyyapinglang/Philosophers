@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lilypad <lilypad@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/14 18:03:37 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/28 13:52:41 by lilypad          ###   ########.fr       */
+/*   Updated: 2026/04/29 11:56:04 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,37 @@ typedef struct s_game
 	bool			print_mutex_init;
 }					t_game;
 
-int					ft_atoi(char *str);
-void				cleanup_game(t_game *game);
+// input valid check
 
+int					ft_atoi(char *str);
+bool				contains_only_digit(int argc, char **argv);
+
+// init functions
+int					init(t_game *game, int argc, char **argv);
+int					init_mutexes(t_game *game);
+int					init_forks(t_game *game);
+int					init_philos(t_game *game);
+void				assign_forks(int i, t_philo *philos, t_game *game,
+						int count);
+// philo routine/thread
+void				*philo_routine(void *philo);
+void				philo_eat(t_philo *philo);
+void				philo_sleep(t_philo *philo);
+void				philo_think(t_philo *philo);
+
+// monitor thread
+bool				is_simulation_over(t_game *game);
+bool				check_philo_die(t_game *game_real, int count,
+						int *full_count);
+void				*monitor_die_or_full(void *game);
+
+// print output
+void				log_death(t_philo *philo);
+void				log_action(t_philo *philo, char *msg);
+
+// utils
+long long			get_time_in_milliseconds(void);
+void				precise_sleep(t_game *game, long long duration_ms);
+// clean
+void				cleanup_game(t_game *game);
 #endif
