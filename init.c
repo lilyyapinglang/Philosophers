@@ -6,7 +6,7 @@
 /*   By: ylang <ylang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/29 12:02:02 by ylang             #+#    #+#             */
-/*   Updated: 2026/04/29 12:12:26 by ylang            ###   ########.fr       */
+/*   Updated: 2026/04/29 12:13:32 by ylang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,8 @@ picks lower index first to break the circular wait
 */
 void	assign_forks(int i, t_philo *philos, t_game *game, int count)
 {
-    int left;
-    int right;
+	int	left;
+	int	right;
 
 	left = i;
 	right = (i + 1) % count;
